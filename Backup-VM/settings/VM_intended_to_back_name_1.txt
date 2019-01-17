@@ -1,0 +1,3 @@
+F:\HyperV-Storage4FilesVHDs\VM1\FILES.vhdx
+H:\HyperV-Storage4HotswapVHDs\VM1\HOTSWAP.vhdx
+B:\HyperV-Storage4BackupVHDs\VM1\BACKUP.vhdx
