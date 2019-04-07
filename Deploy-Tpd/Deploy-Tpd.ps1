@@ -12,38 +12,44 @@
     Link it with PC GPO, for example.
 
 .NOTES
-    27.12.2018 - public version
+    07.03.2019 - public version
 #>
 
 $SourcePath = 'path_to_distro_web_location'
-
 $DeploymentPath = 'path_to_local_place_deployed_to'
 
+$necessary_permissions = "Users",
+ 		                 "FullControl",
+		                 "ContainerInherit,ObjectInherit",
+		                 "None",
+		                 "Allow"
+$permissions = New-Object System.Security.AccessControl.FileSystemAccessRule($necessary_permissions)
 
 if(-not (Test-Path $DeploymentPath)){
     
     New-Item -Path $DeploymentPath -ItemType Directory
 }
 
-
 $folder_acl = Get-Acl $DeploymentPath
 
-$users_permissions = ($folder_acl.Access | Where-Object -Property IdentityReference -eq 'BUILTIN\Users').FileSystemRights
+$users_permissions = $folder_acl.Access |
+                        Where-Object -Property IdentityReference -eq 'BUILTIN\Users'
 
-
-if ($users_permissions -ne 'FullControl'){
-
-    $permissions = New-Object System.Security.AccessControl.FileSystemAccessRule ("Users", "FullControl", "Allow")
+if ($users_permissions.FileSystemRights -ne 'FullControl'){
 
     $folder_acl.SetAccessRule($permissions)
 
-    $folder_acl | Set-Acl $DeploymentPath
+    Set-Acl -Path $DeploymentPath -AclObject $folder_acl
 }
-
 
 Invoke-WebRequest -Uri $SourcePath -OutFile "$DeploymentPath\tpd.zip"
 
-Expand-Archive -Path "$DeploymentPath\tpd.zip" -DestinationPath $DeploymentPath -Force
+$expand_archive = @{
+     Path = "$DeploymentPath\tpd.zip";
+     DestinationPath = $DeploymentPath;
+     Force = $true;
+}
+Expand-Archive @expand_archive
 
 
 if(Test-Path "$DeploymentPath\tpd.exe"){
@@ -51,4 +57,10 @@ if(Test-Path "$DeploymentPath\tpd.exe"){
     Remove-Item "$DeploymentPath\tpd.zip"
 }
 
-New-Item -ItemType SymbolicLink -Path "$env:PUBLIC\Desktop" -Name "tpd" -Value "$DeploymentPath\tpd.exe"
+$new_item = @{
+     ItemType = 'SymbolicLink';
+     Path = "$env:PUBLIC\Desktop";
+     Name = 'tpd'
+     Value = "$DeploymentPath\tpd.exe";
+}
+New-Item @new_item

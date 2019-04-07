@@ -16,22 +16,24 @@ function Get-ADUsers{
     #>
 
     $Date = Get-Date -Format 'dd-MM-yyyy'
-
     $ADusersPath = "C:\AD\accounts"
-
     $DomainSuffix = '@[ -~]*'
-
     $ADUsersSearchBase = 'OU=Accounting,OU=Departments,OU=Staff,OU=Company,DC=fabrikam,DC=com'
 
-    $SimpleOUName = ($ADUsersSearchBase.Split(',') | Select-Object -First 1).split('=')[1]
+    $SimpleOUName = ($ADUsersSearchBase.Split(',') |
+        Select-Object -First 1).split('=')[1]
 
-    $UPNs = Get-ADUser -filter * -SearchBase $ADUsersSearchBase | Select-Object UserPrincipalName
+    $UPNs = Get-ADUser -filter * -SearchBase $ADUsersSearchBase |
+        Select-Object UserPrincipalName
 
-    $FolderNames = $UPNs | ForEach-Object {$_.UserPrincipalName -replace $DomainSuffix}
+    $FolderNames = $UPNs |
+        ForEach-Object {$_.UserPrincipalName -replace $DomainSuffix}
 
-    $FoldersAmount = ($FolderNames | Measure-Object).Count
+    $FoldersAmount = ($FolderNames |
+        Measure-Object).Count
     
-    $FolderNames = $FolderNames | Sort-Object
+    $FolderNames = $FolderNames |
+        Sort-Object
 
     Add-Content -Path "$ADusersPath\$FoldersAmount-$SimpleOUName-$Date.txt" -Value $FolderNames
 }
